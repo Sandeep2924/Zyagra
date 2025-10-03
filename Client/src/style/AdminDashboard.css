@@ -1,0 +1,84 @@
+/* Basic styling for the admin dashboard */
+.admin-container {
+  display: flex;
+  min-height: 100vh;
+  font-family: "Poppins", sans-serif;
+}
+
+.admin-sidebar {
+  width: 250px;
+  background-color: #2d3748; /* Dark Gray */
+  color: white;
+  padding: 1.5rem;
+}
+
+.admin-sidebar h2 {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.admin-sidebar nav ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.admin-sidebar nav a {
+  display: block;
+  color: #e2e8f0; /* Light Gray */
+  text-decoration: none;
+  padding: 1rem;
+  border-radius: 6px;
+  transition: background-color 0.3s;
+}
+
+.admin-sidebar nav li.active a,
+.admin-sidebar nav a:hover {
+  background-color: #4a5568; /* Gray */
+  color: white;
+}
+
+.admin-main-content {
+  flex-grow: 1;
+  padding: 2rem;
+  background-color: #f7fafc; /* Light Gray BG */
+}
+
+.product-form {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  max-width: 600px;
+  background-color: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.product-form input,
+.product-form textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+.product-form button {
+  background-color: #2f855a; /* Dark Green */
+  color: white;
+  border: none;
+  padding: 0.75rem;
+  border-radius: 6px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.product-form button:hover {
+  background-color: #276749;
+}
+
+.feedback-message {
+  margin-top: 1rem;
+  font-weight: bold;
+}

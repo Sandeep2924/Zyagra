@@ -8,17 +8,17 @@ import "../style/HomePage.css"; // The CSS file remains the same, but you'll nee
 // NEW: Enhanced slider data with titles, slogans, and images
 const sliderData = [
   {
-    bgImage: "/pictures/home page/slider/slider50%off.jpg",
+    bgImage: "/pictures/home%20page/slider/slider50%off.jpg",
     title: "Fresh Vegetables at 50% OFF",
     slogan: "Quality you can taste, prices you'll love.",
   },
   {
-    bgImage: "/pictures/home page/slider/sliderInstantDelivery.jpg",
+    bgImage: "/pictures/home%20page/slider/slider_instant-delivery.jpg",
     title: "Instant Delivery on All Orders",
     slogan: "From our store to your door in minutes.",
   },
   {
-    bgImage: "/pictures/home page/slider/sliderSaveBig.jpg",
+    bgImage: "/pictures/home%20page/slider/slider_big_save.jpg",
     title: "Save Big on Monthly Groceries",
     slogan: "Plan your month, save your money.",
   },

@@ -77,19 +77,21 @@ const Navbar = () => {
 
             <li className="nav-spacer"></li>
 
-            <li className="nav-action-item">
-              <NavLink
-                to="/wishlist"
-                className="nav-item-cart"
-                onClick={closeMobileMenu}
-                title="Wishlist"
-              >
-                <FaHeart />
-                {wishlistCount > 0 && (
-                  <span className="cart-badge">{wishlistCount}</span>
-                )}
-              </NavLink>
-            </li>
+          {user && (
+                <li className="nav-action-item">
+                  <NavLink
+                    to="/wishlist"
+                    className="nav-item-cart"
+                    onClick={closeMobileMenu}
+                    title="Wishlist"
+                  >
+                    <FaHeart />
+                    {wishlistCount > 0 && (
+                      <span className="cart-badge">{wishlistCount}</span>
+                    )}
+                  </NavLink>
+                </li>
+              )}
 
             <li className="nav-action-item">
               <NavLink

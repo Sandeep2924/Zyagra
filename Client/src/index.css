@@ -1,0 +1,35 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --green: #1a7a4a;
+  --green-light: #2da05e;
+  --green-pale: #e8f5ee;
+  --green-mid: #c8ecd9;
+  --gold: #d4a017;
+  --dark: #111c14;
+  --gray: #5a6b60;
+  --gray-light: #f4f7f5;
+  --white: #fff;
+  --red: #e53e3e;
+  --font-head: 'Playfair Display', serif;
+  --font-body: 'DM Sans', sans-serif;
+  --radius: 14px;
+  --shadow: 0 4px 24px rgba(26,122,74,0.10);
+  --shadow-lg: 0 8px 40px rgba(26,122,74,0.16);
+}
+
+body { font-family: var(--font-body); color: var(--dark); background: var(--white); }
+
+a { color: inherit; text-decoration: none; }
+button { cursor: pointer; font-family: var(--font-body); }
+img { max-width: 100%; }
+
+/* Global utilities */
+.container { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--gray-light); }
+::-webkit-scrollbar-thumb { background: var(--green); border-radius: 3px; }

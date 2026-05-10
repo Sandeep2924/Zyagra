@@ -1,0 +1,423 @@
+/* Color Variables */
+:root {
+  --primary-text-color: #2c7a7b; /* Teal */
+  --secondary-text-color: #38a169; /* Green */
+  --link-color: #3182ce; /* Blue */
+  --stat-background: #f0fff4; /* Light Mint */
+  --cta-background: #38a169;
+  --shadow-light: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -2px rgba(0, 0, 0, 0.06);
+  --shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -4px rgba(0, 0, 0, 0.05);
+}
+
+/* Base Container Styling */
+.support-farmers-page {
+  max-width: 1200px; /* Slightly wider to accommodate the new grid layouts */
+  margin: 2rem auto;
+  padding: 1rem;
+  font-family: "Poppins", "Arial", sans-serif; 
+  line-height: 1.6;
+  background-color: #ffffff; 
+  overflow-x: hidden;
+}
+
+/* Utility Class for Primary Color */
+.primary-color {
+  color: var(--secondary-text-color);
+}
+
+/* Page Title and Section Titles */
+.page-title {
+  text-align: center;
+  color: var(--primary-text-color);
+  margin-bottom: 1rem;
+  text-shadow: 1px 1px 2px rgba(44, 122, 123, 0.3);
+  letter-spacing: 0.05em;
+  animation: fadeInDown 1s ease-out;
+  font-size: clamp(2rem, 4vw, 3rem);
+}
+
+.main-slogan {
+  text-align: center;
+  font-size: 1.2rem;
+  color: #4a5568;
+  max-width: 800px;
+  margin: 0 auto 3rem auto;
+  animation: fadeInDown 1.2s ease-out;
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.section-title {
+  color: var(--primary-text-color);
+  margin-bottom: 1rem;
+  border-bottom: 3px solid var(--secondary-text-color);
+  display: inline-block;
+  padding-bottom: 0.25rem;
+  text-align: center;
+}
+
+.section-subtitle {
+  text-align: center;
+  color: #718096;
+  font-size: 1.1rem;
+  margin-bottom: 2.5rem;
+}
+
+/* Helper to center section titles easily */
+.section-header-center {
+  text-align: center;
+  width: 100%;
+}
+
+/* --- Hero/Banner Section --- */
+.support-hero {
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 3rem;
+  position: relative;
+  background: url("https://images.unsplash.com/photo-1605000797499-95a51c5269ae?auto=format&fit=crop&w=1200&q=80") center/cover;
+  min-height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-light);
+}
+
+.hero-overlay {
+  background: rgba(255, 255, 255, 0.9);
+  padding: 3rem 2rem;
+  border-radius: 12px;
+  text-align: center;
+  max-width: 800px;
+  width: 90%;
+  box-shadow: var(--shadow-hover);
+}
+
+/* --- Supporting Stats Section --- */
+/* --- Supporting Stats Section --- */
+.stats-section {
+  width: 100%;
+  margin-bottom: 4rem;
+}
+
+/* This handles the layout perfectly, putting them side-by-side */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+  width: 100%;
+}
+
+/* Fallback just in case you didn't use the .stats-grid wrapper */
+.stats-section:not(:has(.stats-grid)) {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.stat-card {
+  flex: 1 1 220px; 
+  min-width: 200px;
+  background-color: var(--stat-background);
+  padding: 2rem 1rem; 
+  border-radius: 10px;
+  text-align: center;
+  border-left: 5px solid var(--secondary-text-color); 
+  box-shadow: var(--shadow-light);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  margin: 0; /* Ensures no weird collapsing margins */
+}
+
+.stat-card:hover {
+  transform: translateY(-5px); 
+  box-shadow: var(--shadow-hover);
+}
+
+.stat-value {
+  font-size: 2.5em; 
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  color: var(--primary-text-color);
+}
+
+.stat-label {
+  font-weight: 600;
+  color: #4a5568;
+  margin-top: 0;
+  font-size: 1.1rem;
+}
+/* --- Partnership Model Steps (NEW) --- */
+.partnership-section {
+  background-color: #f7fafc;
+  padding: 4rem 2rem;
+  border-radius: 12px;
+  margin-bottom: 4rem;
+}
+
+.model-steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+}
+
+.step {
+  background: #ffffff;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: var(--shadow-light);
+  text-align: center;
+  transition: transform 0.3s ease;
+  border-top: 4px solid var(--primary-text-color);
+}
+
+.step:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-hover);
+}
+
+.step-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.step h3 {
+  color: var(--primary-text-color);
+  margin-bottom: 1rem;
+}
+
+/* --- Campaigns Section (NEW) --- */
+.campaigns-section {
+  margin-bottom: 4rem;
+}
+
+.campaign-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 2rem;
+}
+
+.campaign-card {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow-light);
+  background: #fff;
+  transition: transform 0.3s ease;
+}
+
+.campaign-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-hover);
+}
+
+.campaign-image {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+}
+
+.campaign-info {
+  padding: 1.5rem;
+}
+
+.campaign-badge {
+  background: var(--stat-background);
+  color: var(--secondary-text-color);
+  padding: 0.4rem 1rem;
+  border-radius: 50px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  display: inline-block;
+  margin-bottom: 1rem;
+}
+
+/* --- Consumer Impact Section (NEW merged with Details) --- */
+.consumer-impact-section {
+  margin-bottom: 4rem;
+  padding: 0 1rem;
+}
+
+.impact-flex {
+  display: flex;
+  align-items: center;
+  gap: 3rem;
+  flex-wrap: wrap;
+}
+
+.impact-text, .impact-image-wrapper {
+  flex: 1;
+  min-width: 300px;
+}
+
+.impact-image {
+  width: 100%;
+  border-radius: 12px;
+  box-shadow: var(--shadow-light);
+}
+
+/* Keeping your exact list styling */
+.impact-list, .help-list {
+  list-style-type: none; 
+  padding-left: 0;
+}
+
+.impact-list li, .help-list li {
+  padding: 0.75rem 0;
+  border-bottom: 1px dashed #e2e8f0;
+  position: relative;
+  padding-left: 30px;
+  color: #4a5568;
+}
+
+.impact-list li::before, .help-list li::before {
+  content: "✓";
+  color: var(--secondary-text-color);
+  font-weight: bold;
+  font-size: 1.2rem;
+  position: absolute;
+  left: 0;
+  top: 10px;
+}
+
+/* --- Gallery Section --- */
+.gallery-section {
+  margin-bottom: 4rem;
+  text-align: center;
+}
+
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
+  gap: 1.5rem; 
+  margin-top: 1.5rem;
+}
+
+.gallery-image {
+  width: 100%;
+  border-radius: 8px;
+  aspect-ratio: 4/3; 
+  object-fit: cover;
+  box-shadow: var(--shadow-light);
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.gallery-image:hover {
+  transform: scale(1.03);
+  opacity: 0.95;
+  box-shadow: var(--shadow-hover);
+}
+
+/* --- Call to Action Section --- */
+.cta-section {
+  text-align: center;
+  margin-top: 4rem;
+  padding: 4rem 2rem;
+  background-color: var(--stat-background); 
+  border-radius: 12px;
+  box-shadow: var(--shadow-light);
+  border: 2px solid #e6fffa;
+}
+
+.cta-heading {
+  margin-bottom: 1rem;
+  font-size: 2.2rem;
+  color: var(--primary-text-color);
+}
+
+.cta-slogan {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--secondary-text-color);
+  margin-bottom: 1.5rem;
+}
+
+.cta-text {
+  margin-bottom: 2rem;
+  font-size: 1.1rem;
+  color: #4a5568;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.cta-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.cta-button {
+  background-color: var(--cta-background);
+  color: white;
+  padding: 1rem 2.5rem; 
+  border-radius: 9999px; /* Pill shape */
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 1.1rem; 
+  display: inline-block;
+  transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cta-button:hover {
+  background-color: #2f855a;
+  transform: translateY(-3px); 
+  box-shadow: 0 8px 20px rgba(56, 161, 105, 0.4);
+}
+
+.cta-button.secondary {
+  background-color: transparent;
+  color: var(--primary-text-color);
+  border: 2px solid var(--primary-text-color);
+}
+
+.cta-button.secondary:hover {
+  background-color: #e6fffa;
+  box-shadow: none;
+}
+
+/* --- Media Queries --- */
+@media (max-width: 768px) {
+  .stats-section {
+    justify-content: space-evenly;
+  }
+  .stat-card {
+    flex: 1 1 45%; 
+  }
+  .page-title {
+    font-size: 2rem;
+  }
+  .hero-overlay {
+    padding: 2rem 1rem;
+  }
+  .cta-button {
+    padding: 0.8rem 2rem;
+    font-size: 1rem;
+  }
+  .impact-flex {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 480px) {
+  .stat-card {
+    flex: 1 1 100%; 
+  }
+  .cta-buttons {
+    flex-direction: column;
+  }
+  .cta-button {
+    width: 100%;
+  }
+}

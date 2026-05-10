@@ -1,0 +1,84 @@
+.admin-login-container {
+  min-height: calc(100vh - 68px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--dark) 0%, #1a3a24 100%);
+  padding: 2rem 1rem;
+}
+
+.admin-login-form {
+  background: white;
+  border-radius: 20px;
+  padding: 2.5rem 2rem;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+
+.admin-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--green-pale);
+  color: var(--green);
+  padding: 0.35rem 0.85rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.admin-login-form h2 {
+  font-family: var(--font-head);
+  font-size: 1.7rem;
+  color: var(--dark);
+  margin-bottom: 0.35rem;
+}
+.admin-login-form p { color: var(--gray); margin-bottom: 1.75rem; font-size: 0.9rem; }
+
+.input-group { margin-bottom: 1.1rem; }
+.input-group label { display: block; font-size: 0.84rem; font-weight: 600; color: var(--dark); margin-bottom: 0.35rem; }
+.input-group input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1.5px solid #dde3e0;
+  border-radius: 10px;
+  font-size: 0.93rem;
+  font-family: var(--font-body);
+  outline: none;
+  transition: border 0.2s;
+}
+.input-group input:focus { border-color: var(--green); }
+
+.error-message {
+  background: #fff5f5;
+  color: var(--red);
+  border: 1px solid #fed7d7;
+  border-radius: 8px;
+  padding: 0.6rem 0.9rem;
+  font-size: 0.88rem;
+  margin-bottom: 1rem;
+}
+
+.admin-login-button {
+  width: 100%;
+  padding: 0.85rem;
+  background: var(--dark);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 700;
+  transition: all 0.2s;
+  margin-bottom: 1rem;
+  font-family: var(--font-body);
+  cursor: pointer;
+}
+.admin-login-button:hover:not(:disabled) { background: var(--green); }
+.admin-login-button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.form-footer { text-align: center; font-size: 0.85rem; color: var(--gray); }
+.form-footer a { color: var(--green); font-weight: 600; }

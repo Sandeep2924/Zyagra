@@ -1,14 +1,12 @@
-/**
- * api.js — Central API base URL
- *
- * In development: Vite proxies /api → localhost:5001 automatically.
- * In production:  set VITE_API_URL=https://your-backend.com in .env
- *
- * Import this instead of hardcoding "http://localhost:5001" everywhere.
- *
- * Usage:
- *   import { API } from "../config/api";
- *   fetch(`${API}/api/products`)
- */
+// API URL configuration - works for both development and production
+export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
 
-export const API = import.meta.env.VITE_API_URL || "";
+// Example usage in your components:
+// const fetchProducts = async () => {
+//   try {
+//     const response = await axios.get(`${API_URL}/api/products`);
+//     // ... the rest of your logic
+//   } catch (error) {
+//     console.error("Error fetching products:", error);
+//   }
+// };

@@ -57,7 +57,7 @@ const SignUpPage = () => {
 
     try {
       // FIX: Use the API constant and dynamic data
-      const response = await fetch(`${API}/users/register`, {
+      const response = await fetch(`${API}/api/users/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

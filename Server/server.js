@@ -10,7 +10,7 @@ const app = express();
 
 // ── CORS — allow your Vercel frontend in production, localhost in dev ─────────
 const allowedOrigins = [
-  process.env.CLIENT_URL,          // e.g. https://zyagra.vercel.app
+  "https://zyagra.vercel.app",          // e.g. https://zyagra.vercel.app
   "http://localhost:5173",          // Vite dev server
   "http://localhost:3000",          // CRA fallback
 ].filter(Boolean);

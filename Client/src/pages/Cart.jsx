@@ -8,6 +8,9 @@ const Cart = () => {
   const { cartItems, addToCart, removeFromCart, getCartTotal } = useCart();
   const navigate = useNavigate();
 
+  // Get the subtotal from context
+  const subtotal = getCartTotal();
+
   const handleIncrease = (item) => addToCart(item);
   const handleDecrease = (item) => {
     if (item.quantity > 1) {
@@ -23,14 +26,14 @@ const Cart = () => {
         <div style={{ fontSize: "4rem", marginBottom: "1rem" }}>🛒</div>
         <h2>Your cart is empty</h2>
         <p>Add some fresh groceries to get started!</p>
-        <Link to="/products" className="go-shopping">Shop Now</Link>
+        <Link to="/products" className="go-shopping">
+          Shop Now
+        </Link>
       </div>
     );
   }
 
-  const subtotal = getCartTotal();
-  const delivery = subtotal > 499 ? 0 : 49;
-
+  // Added missing return statement here
   return (
     <div className="cart-page">
       <h1>My Cart</h1>
@@ -38,17 +41,31 @@ const Cart = () => {
         <div className="cart-items-list">
           {cartItems.map((item) => (
             <div key={item.id} className="cart-item">
-              <img src={item.image} alt={item.name} onError={(e) => { e.target.src = "https://via.placeholder.com/90x90?text=🥦"; }} />
-              <div>
+              <img
+                src={item.image}
+                alt={item.name}
+                onError={(e) => {
+                  e.target.src = "https://via.placeholder.com/90x90?text=🥦";
+                }}
+              />
+              <div className="cart-item-info">
                 <div className="cart-item-name">{item.name}</div>
                 <div className="cart-item-price">₹{item.price}</div>
                 <div className="qty-controls">
-                  <button className="qty-btn" onClick={() => handleDecrease(item)}>−</button>
+                  <button className="qty-btn" onClick={() => handleDecrease(item)}>
+                    −
+                  </button>
                   <span className="qty-count">{item.quantity}</span>
-                  <button className="qty-btn" onClick={() => handleIncrease(item)}>+</button>
+                  <button className="qty-btn" onClick={() => handleIncrease(item)}>
+                    +
+                  </button>
                 </div>
               </div>
-              <button className="remove-btn" onClick={() => removeFromCart(item.id, true)} title="Remove">
+              <button
+                className="remove-btn"
+                onClick={() => removeFromCart(item.id, true)}
+                title="Remove"
+              >
                 <FiTrash2 />
               </button>
             </div>
@@ -57,11 +74,34 @@ const Cart = () => {
 
         <div className="cart-summary">
           <h2>Order Summary</h2>
-          <div className="summary-row"><span>Subtotal</span><span>₹{subtotal}</span></div>
-          <div className="summary-row"><span>Delivery</span><span>{delivery === 0 ? "FREE" : `₹${delivery}`}</span></div>
-          {delivery > 0 && <div className="summary-row" style={{ fontSize: "0.8rem", color: "var(--green)" }}><span>Add ₹{499 - subtotal} more for free delivery</span></div>}
-          <div className="summary-total"><span>Total</span><span>₹{subtotal + delivery}</span></div>
-          <button className="checkout-btn" onClick={() => navigate("/checkout")}>Proceed to Checkout →</button>
+
+          <div className="summary-row">
+            <span>Subtotal</span>
+            <span>₹{Number(subtotal).toFixed(2)}</span>
+          </div>
+
+          <div className="summary-row">
+            <span>Delivery</span>
+            {/* Delivery logic: 49 if subtotal < 499 */}
+            <span>{Number(subtotal) < 499 ? "₹49" : "FREE"}</span>
+          </div>
+
+          <div className="summary-total">
+            <span>Total</span>
+            {/* Math calculation with explicit Number conversion to prevent string bugs */}
+            <span>
+              ₹{(Number(subtotal) + (Number(subtotal) < 499 ? 49 : 0)).toFixed(2)}
+            </span>
+          </div>
+
+          <button
+            className="checkout-btn"
+            onClick={() => navigate("/checkout")}
+          >
+            {Number(subtotal) < 499
+              ? `You can add ₹${(499 - Number(subtotal)).toFixed(2)} more to Free Delivery`
+              : "Proceed to Checkout →"}
+          </button>
         </div>
       </div>
     </div>

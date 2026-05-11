@@ -96,6 +96,59 @@ const ProductRow = React.memo(({ p, editStockId, editStockVal, setEditStockId,
   prev.editStockVal   === next.editStockVal
 );
 
+
+// ── Inline note cell — local draft state, saves on blur or Enter ─────────────
+const NoteCell = React.memo(({ order, isTerminal, onSave }) => {
+  const [draft,   setDraft]   = React.useState(order.adminNote || "");
+  const [saved,   setSaved]   = React.useState(false);
+  const [focused, setFocused] = React.useState(false);
+
+  // Keep draft in sync if parent re-fetches (e.g. another admin saved a note)
+  React.useEffect(() => {
+    if (!focused) setDraft(order.adminNote || "");
+  }, [order.adminNote, focused]);
+
+  const handleSave = () => {
+    if (draft === (order.adminNote || "")) return; // nothing changed
+    onSave(order._id, draft);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
+
+  if (isTerminal) {
+    return order.adminNote
+      ? <span style={{ fontSize:"0.82em", color:"#744210", background:"#FEFCBF", padding:"4px 8px", borderRadius:6, display:"block" }}>📝 {order.adminNote}</span>
+      : <span style={{ color:"#ccc", fontSize:"0.78em" }}>—</span>;
+  }
+
+  return (
+    <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
+      <textarea
+        value={draft}
+        maxLength={500}
+        placeholder="Add a note for the customer…"
+        rows={2}
+        onFocus={() => setFocused(true)}
+        onBlur={() => { setFocused(false); handleSave(); }}
+        onChange={(e) => { setDraft(e.target.value); setSaved(false); }}
+        style={{
+          width:"100%", padding:"6px 8px", fontSize:"0.8em",
+          border:"1px solid #e2e8f0", borderRadius:6, resize:"none",
+          outline:"none", fontFamily:"inherit", boxSizing:"border-box",
+          background: draft ? "#FEFCBF" : "#fff",
+          transition:"border-color 0.15s",
+        }}
+        onFocusCapture={(e) => (e.target.style.borderColor = "#D69E2E")}
+        onBlurCapture={(e)  => (e.target.style.borderColor = "#e2e8f0")}
+      />
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+        <span style={{ fontSize:"0.68em", color:"#a0aec0" }}>{draft.length}/500</span>
+        {saved && <span style={{ fontSize:"0.72em", color:"#38A169", fontWeight:600 }}>✓ Saved</span>}
+      </div>
+    </div>
+  );
+});
+
 // ─────────────────────────────────────────────────────────────────────────────
 const AdminDashboard = () => {
   const navigate   = useNavigate();
@@ -134,6 +187,13 @@ const AdminDashboard = () => {
   const [cancelOrderId,   setCancelOrderId]   = useState("");
   const [cancelReason,    setCancelReason]    = useState("");
   const [showCancelModal, setShowCancelModal] = useState(false);
+
+  // Order status pipeline controls
+  const [statusOrderId,   setStatusOrderId]   = useState(null);
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [noteOrderId,     setNoteOrderId]     = useState(null);
+  const [noteText,        setNoteText]        = useState("");
+  const [showNoteModal,   setShowNoteModal]   = useState(false);
   const [orderFilter,     setOrderFilter]     = useState("all"); // all|pending|delivered|cancelled
   const [orderID,         setOrderID]         = useState("");
 
@@ -260,6 +320,8 @@ const AdminDashboard = () => {
   // ── handlers ──────────────────────────────────────────────────────────────
   const handleLogout = () => {
     localStorage.removeItem("adminInfo");
+    // Open the main storefront in a new tab, stay on admin login
+    window.open("/", "_blank", "noopener,noreferrer");
     navigate("/admin/login", { replace: true });
   };
 
@@ -309,6 +371,65 @@ const AdminDashboard = () => {
     } finally {
       setActionLoading(false);
       setCancelOrderId("");
+    }
+  };
+
+  // — Set order status (pipeline advance) —
+  const STATUS_LABELS = {
+    placed:           "✅ Confirmed",
+    confirmed:        "📦 Mark Packed",
+    packed:           "🚚 Out for Delivery",
+    out_for_delivery: "🎉 Mark Delivered",
+    delivered:        null,
+    cancelled:        null,
+  };
+  const NEXT_STATUS = {
+    placed:           "confirmed",
+    confirmed:        "packed",
+    packed:           "out_for_delivery",
+    out_for_delivery: "delivered",
+  };
+
+  const handleAdvanceStatus = async (orderId, currentStatus, targetStatus) => {
+    const next = targetStatus || NEXT_STATUS[currentStatus];
+    if (!next) return;
+    setActionLoading(true);
+    try {
+      const res  = await fetch(`${API}/api/orders/setstatus`, {
+        method: "POST", headers: authHeaders(),
+        body: JSON.stringify({ orderId, status: next }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+      setMessage(`✅ Order status → ${next.replace(/_/g," ")}`);
+      await fetchOrders();
+    } catch (err) {
+      setMessage(`❌ ${err.message}`);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // — Save admin note —
+  const handleSaveNote = async () => {
+    if (!noteOrderId) return;
+    setShowNoteModal(false);
+    setActionLoading(true);
+    try {
+      const res  = await fetch(`${API}/api/orders/setnote`, {
+        method: "POST", headers: authHeaders(),
+        body: JSON.stringify({ orderId: noteOrderId, note: noteText }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+      setMessage("✅ Note saved — visible to customer.");
+      await fetchOrders();
+    } catch (err) {
+      setMessage(`❌ ${err.message}`);
+    } finally {
+      setActionLoading(false);
+      setNoteOrderId(null);
+      setNoteText("");
     }
   };
 
@@ -478,24 +599,17 @@ const AdminDashboard = () => {
           <h1 className="admin-title">Zyagra Admin</h1>
           <div className="admin-nav" style={{ display: "flex", alignItems: "center", gap: "12px" }}>
 
-            {/* Notification bell */}
+            {/* Notification bell — responsive */}
             <div style={{ position: "relative" }}>
               <button
                 onClick={() => { setShowNotifPanel((v) => !v); setNewOrderBadge(0); }}
-                style={{
-                  background: "none", border: "1px solid #ddd", borderRadius: "8px",
-                  padding: "6px 12px", cursor: "pointer", fontSize: "1.3rem",
-                }}
+                className="bell-button"
                 title="Order notifications"
+                aria-label="Notifications"
               >
                 🔔
                 {newOrderBadge > 0 && (
-                  <span style={{
-                    position: "absolute", top: "-6px", right: "-6px",
-                    background: "#E53E3E", color: "#fff", borderRadius: "50%",
-                    fontSize: "0.65rem", width: "18px", height: "18px",
-                    display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold",
-                  }}>
+                  <span className="bell-badge">
                     {newOrderBadge > 9 ? "9+" : newOrderBadge}
                   </span>
                 )}
@@ -672,82 +786,171 @@ const AdminDashboard = () => {
               ))}
             </div>
 
-            {/* Mark delivered */}
-            <form onSubmit={updateOrders} className="update-order-form" style={{ marginBottom: "20px" }}>
-              <h4>Mark Order as Delivered</h4>
-              <select value={orderID} onChange={(e) => setOrderID(e.target.value)}>
-                <option value="">Select a pending order…</option>
-                {orders.filter((o) => !o.isDelivered && o.status !== "cancelled").map((o) => (
-                  <option key={o._id} value={o._id}>
-                    #{o._id.slice(0, 10)}… — {fmt(o.totalPrice)}
-                  </option>
-                ))}
-              </select>
-              <button type="submit" className="submit-button" disabled={loading || !orderID}>
-                📦 Mark Delivered
-              </button>
-            </form>
+            {/* ── Pipeline status legend ── */}
+            <div className="pipeline-legend">
+              {["placed","confirmed","packed","out_for_delivery","delivered"].map((s,i,arr) => (
+                <React.Fragment key={s}>
+                  <span className="pipeline-step">{
+                    {placed:"🛒 Placed", confirmed:"✅ Confirmed", packed:"📦 Packed",
+                     out_for_delivery:"🚚 Out for Delivery", delivered:"🎉 Delivered"}[s]
+                  }</span>
+                  {i < arr.length-1 && <span className="pipeline-arrow">→</span>}
+                </React.Fragment>
+              ))}
+            </div>
 
             {/* Orders table */}
             {filteredOrders.length === 0 ? (
-              <p style={{ textAlign: "center", color: "#888" }}>No orders found.</p>
+              <p style={{ textAlign: "center", color: "#888", padding: "2rem" }}>No orders found.</p>
             ) : (
               <div style={{ overflowX: "auto" }}>
                 <table className="orders-table" style={{ width: "100%", borderCollapse: "collapse" }}>
                   <thead>
                     <tr style={{ background: "#f4f4f4" }}>
-                      <th style={{ padding: "10px", textAlign: "left" }}>Order ID</th>
-                      <th style={{ padding: "10px" }}>Date</th>
+                      <th style={{ padding: "10px", textAlign: "left" }}>Order</th>
                       <th style={{ padding: "10px" }}>Customer</th>
                       <th style={{ padding: "10px" }}>Items</th>
                       <th style={{ padding: "10px", textAlign: "right" }}>Total</th>
                       <th style={{ padding: "10px", textAlign: "center" }}>Status</th>
+                      <th style={{ padding: "10px", textAlign: "center" }}>Notes</th>
                       <th style={{ padding: "10px", textAlign: "center" }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredOrders.map((order) => {
-                      const isCancelled  = order.status === "cancelled";
-                      const isDelivered  = order.isDelivered || order.status === "delivered";
+                      const s           = order.status || (order.isDelivered ? "delivered" : "placed");
+                      const isCancelled = s === "cancelled";
+                      const isDelivered = s === "delivered";
+                      const isTerminal  = isCancelled || isDelivered;
+
+                      const STATUS_OPTIONS = [
+                        { value:"placed",           label:"🛒 Placed" },
+                        { value:"confirmed",         label:"✅ Confirmed" },
+                        { value:"packed",            label:"📦 Packed" },
+                        { value:"out_for_delivery",  label:"🚚 Out for Delivery" },
+                        { value:"delivered",         label:"🎉 Delivered" },
+                        { value:"cancelled",         label:"❌ Cancelled" },
+                      ];
+
+                      const STATUS_PIPELINE_ORDER = ["placed","confirmed","packed","out_for_delivery","delivered"];
+                      const currentIdx = STATUS_PIPELINE_ORDER.indexOf(s);
+
+                      const statusBg = {
+                        placed:"#FEFCBF", confirmed:"#BEE3F8", packed:"#E9D8FD",
+                        out_for_delivery:"#FEEBC8", delivered:"#C6F6D5", cancelled:"#FED7D7"
+                      }[s] || "#eee";
+
                       return (
-                        <tr key={order._id} style={{ borderBottom: "1px solid #eee", background: isCancelled ? "#fff5f5" : isDelivered ? "#f0fff4" : "#fff" }}>
-                          <td style={{ padding: "10px", fontFamily: "monospace", fontSize: "0.85em" }}>
-                            #{order._id.slice(0, 10)}…
+                        <tr key={order._id} style={{ borderBottom:"1px solid #eee", background: isCancelled?"#fffafa":isDelivered?"#f0fff4":"#fff", verticalAlign:"middle" }}>
+
+                          {/* Order ID + date */}
+                          <td style={{ padding:"12px 10px", minWidth:120 }}>
+                            <div style={{ fontFamily:"monospace", fontSize:"0.82em", fontWeight:700, color:"#2d3748" }}>
+                              #{order._id.slice(-8).toUpperCase()}
+                            </div>
+                            <div style={{ fontSize:"0.75em", color:"#a0aec0", marginTop:2 }}>
+                              {new Date(order.createdAt).toLocaleDateString("en-IN",{day:"numeric",month:"short"})}
+                            </div>
                           </td>
-                          <td style={{ padding: "10px", textAlign: "center", whiteSpace: "nowrap" }}>
-                            {new Date(order.createdAt).toLocaleDateString()}
+
+                          {/* Customer */}
+                          <td style={{ padding:"12px 10px", minWidth:140 }}>
+                            <div style={{ fontWeight:700, color:"#2d3748" }}>{order.customerName || "—"}</div>
+                            <div style={{ fontSize:"0.82em", color:"#718096", marginTop:2 }}>📞 {order.phone}</div>
+                            <div style={{ fontSize:"0.76em", color:"#a0aec0" }}>{order.shippingAddress?.city}</div>
                           </td>
-                          <td style={{ padding: "10px" }}>
-                            <div>{order.shippingAddress?.address}</div>
-                            <div style={{ color: "#888", fontSize: "0.85em" }}>📞 {order.phone}</div>
-                          </td>
-                          <td style={{ padding: "10px" }}>
-                            {order.orderItems.map((item, i) => (
-                              <div key={i} style={{ fontSize: "0.85em" }}>
-                                {item.name} ×{item.qty} @ ₹{item.price}
+
+                          {/* Items */}
+                          <td style={{ padding:"12px 10px", minWidth:170 }}>
+                            {order.orderItems.map((item,i) => (
+                              <div key={i} style={{ fontSize:"0.83em", color:"#4a5568", lineHeight:1.5 }}>
+                                {item.name} ×{item.qty}
                               </div>
                             ))}
                           </td>
-                          <td style={{ padding: "10px", textAlign: "right", fontWeight: "bold" }}>
+
+                          {/* Total */}
+                          <td style={{ padding:"12px 10px", textAlign:"right", fontWeight:700, whiteSpace:"nowrap", color:"#2d3748" }}>
                             {fmt(order.totalPrice)}
                           </td>
-                          <td style={{ padding: "10px", textAlign: "center" }}>
-                            {statusBadge(order)}
+
+                          {/* Status — dropdown */}
+                          <td style={{ padding:"12px 10px", textAlign:"center", minWidth:170 }}>
+                            {isTerminal ? (
+                              <span style={{
+                                display:"inline-block", padding:"5px 12px", borderRadius:20,
+                                fontSize:"0.82em", fontWeight:700,
+                                background: statusBg, color:"#333",
+                              }}>
+                                { isCancelled ? "❌ Cancelled" : "🎉 Delivered" }
+                              </span>
+                            ) : (
+                              <select
+                                value={s}
+                                disabled={loading}
+                                onChange={(e) => {
+                                  const newStatus = e.target.value;
+                                  if (newStatus === "cancelled") {
+                                    openCancelModal(order._id);
+                                  } else {
+                                    handleAdvanceStatus(order._id, s, newStatus);
+                                  }
+                                }}
+                                style={{
+                                  padding:"6px 10px", borderRadius:8, border:"2px solid "+statusBg,
+                                  background: statusBg, fontWeight:700, fontSize:"0.82em",
+                                  cursor:"pointer", outline:"none", color:"#333",
+                                  appearance:"none", WebkitAppearance:"none",
+                                 backgroundImage: "url('https://static.investindia.gov.in/s3fs-public/2022-08/pexels-pixabay-207247.jpg')",
+                                  backgroundRepeat:"no-repeat", backgroundPosition:"right 8px center",
+                                  backgroundSize:"9px", paddingRight:26,
+                                }}
+                              >
+                                {STATUS_OPTIONS.map(opt => {
+                                  const optIdx = STATUS_PIPELINE_ORDER.indexOf(opt.value);
+                                  // Only show current + forward options + cancelled
+                                  const reachable = opt.value === "cancelled" || optIdx >= currentIdx;
+                                  return reachable ? (
+                                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                  ) : null;
+                                })}
+                              </select>
+                            )}
                             {isCancelled && order.cancelReason && (
-                              <div style={{ fontSize: "0.75em", color: "#888", marginTop: "4px" }}>
-                                {order.cancelReason}
-                              </div>
+                              <div style={{ fontSize:"0.72em", color:"#999", marginTop:4 }}>{order.cancelReason}</div>
                             )}
                           </td>
-                          <td style={{ padding: "10px", textAlign: "center" }}>
-                            {!isDelivered && !isCancelled && (
-                              <button
-                                onClick={() => openCancelModal(order._id)}
-                                disabled={loading}
-                                style={{
-                                  padding: "6px 12px", background: "#E53E3E", color: "#fff",
-                                  border: "none", borderRadius: "6px", cursor: "pointer", fontSize: "0.85em",
-                                }}>
+
+                          {/* Notes column — inline textarea + save */}
+                          <td style={{ padding:"12px 10px", minWidth:200 }}>
+                            <NoteCell
+                              order={order}
+                              isTerminal={isTerminal}
+                              onSave={async (orderId, note) => {
+                                setActionLoading(true);
+                                try {
+                                  const res = await fetch(`${API}/api/orders/setnote`, {
+                                    method:"POST", headers:authHeaders(),
+                                    body:JSON.stringify({ orderId, note }),
+                                  });
+                                  const data = await res.json();
+                                  if (!res.ok) throw new Error(data.message);
+                                  setMessage("✅ Note saved — visible to customer.");
+                                  await fetchOrders();
+                                } catch(err) {
+                                  setMessage(`❌ ${err.message}`);
+                                } finally {
+                                  setActionLoading(false);
+                                }
+                              }}
+                            />
+                          </td>
+
+                          {/* Actions — Reject only */}
+                          <td style={{ padding:"12px 10px", textAlign:"center", minWidth:80 }}>
+                            {!isTerminal && (
+                              <button onClick={() => openCancelModal(order._id)} disabled={loading}
+                                style={{ padding:"6px 12px", background:"#E53E3E", color:"#fff", border:"none", borderRadius:6, cursor:"pointer", fontSize:"0.82em", fontWeight:600, whiteSpace:"nowrap" }}>
                                 ✕ Reject
                               </button>
                             )}
@@ -937,6 +1140,38 @@ const AdminDashboard = () => {
         )}
 
       </main>
+
+      {/* ── Admin Note Modal ─────────────────────────────────────────────────── */}
+      {showNoteModal && (
+        <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.5)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:1000 }}>
+          <div style={{ background:"#fff", borderRadius:12, padding:32, width:420, boxShadow:"0 16px 48px rgba(0,0,0,0.2)" }}>
+            <h3 style={{ margin:"0 0 12px", color:"#D69E2E" }}>📝 Add Note to Order</h3>
+            <p style={{ color:"#666", fontSize:"0.9rem", marginBottom:12 }}>
+              This note will be visible to the customer on their order tracking page.<br/>
+              Notes can only be set before the order is packed.
+            </p>
+            <textarea
+              value={noteText}
+              onChange={(e) => setNoteText(e.target.value)}
+              maxLength={500}
+              placeholder="e.g. Your order is being specially packed with an ice bag."
+              rows="4"
+              style={{ width:"100%", padding:10, border:"1px solid #ddd", borderRadius:6, resize:"vertical", boxSizing:"border-box", fontSize:"0.95rem" }}
+            />
+            <div style={{ fontSize:"0.78rem", color:"#aaa", textAlign:"right" }}>{noteText.length}/500</div>
+            <div style={{ display:"flex", gap:12, marginTop:16, justifyContent:"flex-end" }}>
+              <button onClick={() => setShowNoteModal(false)}
+                style={{ padding:"10px 20px", background:"#eee", border:"none", borderRadius:6, cursor:"pointer" }}>
+                Cancel
+              </button>
+              <button onClick={handleSaveNote}
+                style={{ padding:"10px 20px", background:"#D69E2E", color:"#fff", border:"none", borderRadius:6, cursor:"pointer", fontWeight:"bold" }}>
+                Save Note
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Cancel / Reject Modal ───────────────────────────────────────────── */}
       {showCancelModal && (

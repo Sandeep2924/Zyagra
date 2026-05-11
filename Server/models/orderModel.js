@@ -25,47 +25,36 @@ const orderSchema = new mongoose.Schema(
       city:       { type: String, required: true },
       postalCode: { type: String, required: true },
     },
-    phone: {
-      type:     String,
-      required: true,
-      default:  "0000000000",
-    },
-    paymentMethod: {
-      type:     String,
-      required: true,
-      default:  "Cash on Delivery",
-    },
-    totalPrice: {
-      type:     Number,
-      required: true,
-      default:  0.0,
-    },
-    isPaid: {
-      type:     Boolean,
-      required: true,
-      default:  false,
-    },
-    paidAt: { type: Date },
-    isDelivered: {
-      type:     Boolean,
-      required: true,
-      default:  false,
-    },
+    phone:         { type: String, required: true, default: "0000000000" },
+    paymentMethod: { type: String, required: true, default: "Cash on Delivery" },
+    totalPrice:    { type: Number, required: true, default: 0.0 },
+
+    isPaid:      { type: Boolean, required: true, default: false },
+    paidAt:      { type: Date },
+    isDelivered: { type: Boolean, required: true, default: false },
     deliveredAt: { type: Date },
 
-    // ── NEW FIELDS ─────────────────────────────────────────────────────────────
-    // Tracks order lifecycle: pending → delivered | cancelled
+    // ── Full order status pipeline ─────────────────────────────────────────
+    // Admin moves the order forward through these stages one at a time.
+    // "cancelled" is a terminal state reachable from placed/confirmed/packed.
     status: {
       type:    String,
-      enum:    ["pending", "delivered", "cancelled"],
-      default: "pending",
+      enum:    ["placed", "confirmed", "packed", "out_for_delivery", "delivered", "cancelled"],
+      default: "placed",
     },
-    // Reason stored when admin rejects/cancels
+
+    // Admin note — visible to the customer on their order tracking page.
+    // Can be updated any time before the order is packed.
+    adminNote: {
+      type:    String,
+      default: "",
+      maxlength: 500,
+    },
+
     cancelReason: {
       type:    String,
       default: "",
     },
-    // ──────────────────────────────────────────────────────────────────────────
   },
   { timestamps: true }
 );

@@ -1,20 +1,31 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
-// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
     proxy: {
-      // Every request to /api/... is forwarded to the Express server.
-      // This means the frontend NEVER has to hardcode localhost:5001 —
-      // it just uses /api/... and Vite forwards it automatically.
-      // This also eliminates ALL CORS errors in development.
+      // In LOCAL dev: proxies /api → Express on localhost:5001
+      // In PRODUCTION (Vercel): VITE_API_URL is set, so fetch() goes directly
+      // to the Render URL — proxy is only active during `npm run dev`
       "/api": {
-        target: "http://localhost:5001",
+        target:      "http://localhost:5001",
         changeOrigin: true,
-        secure: false,
+        secure:       false,
+      },
+    },
+  },
+  build: {
+    outDir:        "dist",
+    sourcemap:     false,
+    rollupOptions: {
+      output: {
+        // Split vendor chunks for faster loads
+        manualChunks: {
+          vendor:  ["react", "react-dom", "react-router-dom"],
+          charts:  ["chart.js", "react-chartjs-2"],
+        },
       },
     },
   },

@@ -204,3 +204,50 @@ select {
 .container {
   padding: 2px 16px;
 }
+/* ── Bell button — responsive ──────────────────────────────────────────────── */
+.bell-button {
+  position: relative;
+  background: none;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 1.3rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+.bell-button:hover { background: #f7fafc; }
+.bell-badge {
+  position: absolute;
+  top: -6px; right: -6px;
+  background: #E53E3E; color: #fff;
+  border-radius: 50%;
+  font-size: 0.62rem; width: 18px; height: 18px;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: bold; pointer-events: none;
+}
+
+/* ── Order pipeline legend ─────────────────────────────────────────────────── */
+.pipeline-legend {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 6px;
+  background: #f7fafc; border: 1px solid #e2e8f0; border-radius: 10px;
+  padding: 12px 18px; margin-bottom: 20px;
+  font-size: 0.82rem; color: #4a5568;
+}
+.pipeline-step  { font-weight: 600; white-space: nowrap; }
+.pipeline-arrow { color: #a0aec0; font-weight: bold; }
+
+/* ── Admin header responsive ───────────────────────────────────────────────── */
+.admin-header { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:20px; }
+.admin-nav    { display:flex; align-items:center; flex-wrap:wrap; gap:10px; }
+.admin-nav h4 { display: none; }
+@media (min-width: 700px) { .admin-nav h4 { display: block; } }
+@media (max-width: 600px) {
+  .bell-button   { padding: 6px 8px; font-size: 1.1rem; }
+  .pipeline-legend { font-size: 0.74rem; padding: 8px 12px; }
+  .admin-title   { font-size: 1.3rem; }
+  .logout-button { font-size: 0.85rem; padding: 6px 10px; }
+}

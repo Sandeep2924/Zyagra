@@ -6,18 +6,19 @@ import { API } from "../config/api";
 
 // ── Status timeline ───────────────────────────────────────────────────────────
 const TIMELINE_STEPS = [
-  { key: "placed",    label: "Order Placed",    icon: "🛒" },
-  { key: "confirmed", label: "Confirmed",        icon: "✅" },
-  { key: "packed",    label: "Packed",           icon: "📦" },
-  { key: "shipped",   label: "Out for Delivery", icon: "🚚" },
-  { key: "delivered", label: "Delivered",        icon: "🎉" },
+  { key: "placed",           label: "Order Placed",     icon: "🛒" },
+  { key: "confirmed",        label: "Confirmed",         icon: "✅" },
+  { key: "packed",           label: "Packed",            icon: "📦" },
+  { key: "out_for_delivery", label: "Out for Delivery",  icon: "🚚" },
+  { key: "delivered",        label: "Delivered",         icon: "🎉" },
 ];
 
+const STATUS_INDEX = {
+  placed: 0, confirmed: 1, packed: 2, out_for_delivery: 3, delivered: 4,
+};
 const getStepIndex = (order) => {
   if (order.status === "cancelled") return -1;
-  if (order.isDelivered)            return 4; // all done
-  // Pending orders: show 2 steps done (placed + confirmed)
-  return 1;
+  return STATUS_INDEX[order.status] ?? 0;
 };
 
 const OrderTimeline = ({ order }) => {
@@ -179,6 +180,17 @@ const MyOrdersPage = () => {
 
                     {/* Timeline */}
                     <OrderTimeline order={order} />
+
+                    {/* Admin note */}
+                    {order.adminNote && (
+                      <div style={{
+                        background:"#FEFCBF", border:"1px solid #F6E05E",
+                        borderRadius:8, padding:"10px 14px", marginBottom:16,
+                        fontSize:"0.9rem", color:"#744210",
+                      }}>
+                        📝 <strong>Note from Zyagra:</strong> {order.adminNote}
+                      </div>
+                    )}
 
                     {/* Items */}
                     <div className="order-items-section">

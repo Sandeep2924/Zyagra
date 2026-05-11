@@ -68,6 +68,7 @@ const Navbar = () => {
               .filter(
                 (link) => !link.authRequired || (link.authRequired && user)
               )
+              .filter((link) => link.to !== "/admin/login")
               .map((link) => (
                 <li key={link.to}>
                   <NavLink
@@ -79,6 +80,26 @@ const Navbar = () => {
                   </NavLink>
                 </li>
               ))}
+
+            {/* Admin — opens as a standalone popup window */}
+            <li>
+              <button
+                className="nav-item admin-popup-btn"
+                onClick={() => {
+                  const w = 1200, h = 750;
+                  const left = Math.round(window.screenX + (window.outerWidth  - w) / 2);
+                  const top  = Math.round(window.screenY + (window.outerHeight - h) / 2);
+                  window.open(
+                    "/admin/login",
+                    "ZyagraAdmin",
+                    `width=${w},height=${h},left=${left},top=${top},resizable=yes,scrollbars=yes`
+                  );
+                  closeMobileMenu();
+                }}
+              >
+                Admin 🛠️
+              </button>
+            </li>
 
             <li className="nav-spacer"></li>
 

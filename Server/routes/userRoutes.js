@@ -50,6 +50,11 @@ router.post("/login", async (req, res) => {
     try {
         const { email, password } = req.body;
 
+        // Validate inputs
+        if (!email || !password) {
+            return res.status(400).json({ message: "Email and password are required." });
+        }
+
         // 1. Find user (must explicitly select password since it has select: false)
         const user = await User.findOne({ email: email.toLowerCase() }).select("+password");
         if (!user) {
@@ -62,8 +67,13 @@ router.post("/login", async (req, res) => {
             return res.status(400).json({ message: "Invalid email or password." });
         }
 
-        // 3. Create JWT Token
-        // Ensure JWT_SECRET is set in your deployment environment variables
+        // 3. Validate JWT_SECRET is set
+        if (!process.env.JWT_SECRET) {
+            console.error("❌ JWT_SECRET is not set in environment variables");
+            return res.status(500).json({ message: "Server configuration error. Please contact support." });
+        }
+
+        // 4. Create JWT Token
         const token = jwt.sign(
             { id: user._id },
             process.env.JWT_SECRET,
@@ -77,7 +87,7 @@ router.post("/login", async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Login Error:", error);
+        console.error("❌ Login Error:", error.message, error.stack);
         res.status(500).json({ message: "Server error during login." });
     }
 });

@@ -10,9 +10,11 @@ const app = express();
 
 // ── CORS — allow your Vercel frontend in production, localhost in dev ─────────
 const allowedOrigins = [
-  "https://zyagra.vercel.app",          // e.g. https://zyagra.vercel.app
+  "https://zyagra.vercel.app",      // Vercel frontend
+  "https://www.zyagra.vercel.app",  // WWW variant
   "http://localhost:5173",          // Vite dev server
   "http://localhost:3000",          // CRA fallback
+  "http://127.0.0.1:5173",          // Localhost variant
 ].filter(Boolean);
 
 app.use(cors({
@@ -20,6 +22,7 @@ app.use(cors({
     // Allow requests with no origin (mobile apps, curl, Postman)
     if (!origin) return callback(null, true);
     if (allowedOrigins.includes(origin)) return callback(null, true);
+    console.warn(`⚠️  CORS blocked origin: ${origin}`);
     callback(new Error(`CORS blocked: ${origin}`));
   },
   credentials: true,

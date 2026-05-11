@@ -50,8 +50,8 @@ router.post("/login", async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        // 1. Find user
-        const user = await User.findOne({ email: email.toLowerCase() });
+        // 1. Find user (must explicitly select password since it has select: false)
+        const user = await User.findOne({ email: email.toLowerCase() }).select("+password");
         if (!user) {
             return res.status(400).json({ message: "Invalid email or password." });
         }

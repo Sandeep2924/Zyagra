@@ -1,12 +1,17 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import "../style/LoginPage.css"; // We can reuse the same CSS for a similar look
+import "../style/LoginPage.css";
 import { useAuth } from "../context/AuthContext";
+// Import your API constant (adjust the path to where your config file is)
+import { API } from "../config/api"; 
+
 const LoginPage = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -14,31 +19,36 @@ const LoginPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-
-    if (!formData.email || !formData.password) {
-      return setError("Please enter both email and password.");
-    }
+    setLoading(true);
 
     try {
-      // Step 1: Send data to the REGULAR USER login endpoint
-      const response = await fetch("http://localhost:5001/api/users/login", {
+      // Use your exported API constant here
+      const response = await fetch(`${API}/users/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
 
       const data = await response.json();
+
       if (!response.ok) {
-        throw new Error(data.message);
+        throw new Error(data.message || "Login failed");
       }
 
-      // Step 2: Save the regular user's info to localStorage
+      // Success logic
       localStorage.setItem("userInfo", JSON.stringify(data));
-      login(data); // Update auth context
-      // Step 3: Navigate to the homepage with a welcome message
+      login(data);
       navigate("/", { state: { message: data.message } });
+      
     } catch (err) {
-      setError(err.message);
+      // Handle deployment-related fetch errors
+      if (err.message === "Failed to fetch") {
+        setError("Network error: Please check if the backend server is running.");
+      } else {
+        setError(err.message);
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -57,8 +67,10 @@ const LoginPage = () => {
             value={formData.email}
             onChange={handleChange}
             placeholder="you@example.com"
+            required
           />
         </div>
+
         <div className="input-group">
           <label htmlFor="password">Password</label>
           <input
@@ -68,23 +80,19 @@ const LoginPage = () => {
             value={formData.password}
             onChange={handleChange}
             placeholder="Enter your password"
+            required
           />
         </div>
 
-        {error && <p className="error-message">{error}</p>}
-        <button type="submit" className="login-button">
-          Log In
+        {error && <p className="error-message" style={{ color: "red", fontSize: "0.9rem" }}>{error}</p>}
+        
+        <button type="submit" className="login-button" disabled={loading}>
+          {loading ? "Authenticating..." : "Log In"}
         </button>
 
         <div className="form-footer">
-          <p>
-            Don't have an account? <Link to="/signup">Sign Up</Link>
-          </p>
-
-          {/* --- NEW LINK TO ADMIN LOGIN --- */}
-          <p className="admin-link">
-            Are you an administrator? <Link to="/admin/login">Admin Login</Link>
-          </p>
+          <p>Don't have an account? <Link to="/signup">Sign Up</Link></p>
+          <p className="admin-link">Are you an administrator? <Link to="/admin/login">Admin Login</Link></p>
         </div>
       </form>
     </div>

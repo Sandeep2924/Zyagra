@@ -5,58 +5,69 @@ const userSchema = new mongoose.Schema(
   {
     fullName: {
       type: String,
-      required: [true, "Please provide your full name"],
+      required: [true, "Full name is required"],
+      trim: true,
     },
     shippingAddress: {
-      address: { type: String, required: true },
-      city: { type: String, required: true },
-      postalCode: { type: String, required: true },
+      address: { type: String, required: [true, "Street address is required"], trim: true },
+      city: { type: String, required: [true, "City is required"], trim: true },
+      postalCode: { type: String, required: [true, "Postal code is required"], trim: true },
     },
     email: {
       type: String,
-      required: [true, "Please provide an email"],
-      unique: true, // No two users can have the same email
-      match: [/.+\@.+\..+/, "Please enter a valid email"],
-    },
-    phone: {
-      type: String,
-      required: [true, "Phone Number is required"],
+      required: [true, "Email is required"],
       unique: true,
       lowercase: true,
       trim: true,
-      match: [
-        /^[0-9]{10}$/,
-        "Please enter a valid number",
-      ],
+      match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, "Please enter a valid email"],
+    },
+    phone: {
+      type: String,
+      required: [true, "Phone number is required"],
+      unique: true,
+      trim: true,
+      // Removed lowercase: true because numbers don't have case
+      match: [/^[0-9]{10,15}$/, "Please enter a valid phone number (10-15 digits)"],
     },
     password: {
       type: String,
-      required: [true, "Please provide a password"],
-      minlength: 6,
+      required: [true, "Password is required"],
+      minlength: [6, "Password must be at least 6 characters"],
+      select: false, // Prevents password from being returned in queries by default
     },
     role: {
       type: String,
-      enum: ["user", "admin"], // Role must be either 'user' or 'admin'
-      default: "user", // New users are assigned the 'user' role by default
+      enum: ["user", "admin"],
+      default: "user",
     },
   },
   {
-    // This automatically adds `createdAt` and `updatedAt` fields
-    timestamps: true,
+    timestamps: true, // Automatically manages createdAt and updatedAt
   }
 );
 
-// This function runs BEFORE a new user document is saved to the database
+/**
+ * PRE-SAVE HOOK: Hashes password before saving to DB
+ */
 userSchema.pre("save", async function (next) {
-  // Only hash the password if it has been modified (or is new)
-  if (!this.isModified("password")) {
-    return next();
-  }
+  // Only run this if the password was actually changed
+  if (!this.isModified("password")) return next();
 
-  // Generate a salt and hash the password
-  const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hash(this.password, salt);
-  next();
+  try {
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+    next();
+  } catch (err) {
+    next(err);
+  }
 });
+
+/**
+ * INSTANCE METHOD: Compare entered password with hashed password in DB
+ * Usage: const isMatch = await user.comparePassword(enteredPassword);
+ */
+userSchema.methods.comparePassword = async function (enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.password);
+};
 
 module.exports = mongoose.model("User", userSchema);

@@ -1,91 +1,99 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import "../style/SignUpPage.css";
+import { API } from "../config/api"; // Import your API constant
 
 const SignUpPage = () => {
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
+    phone: "",
     password: "",
     confirmPassword: "",
+    address: "",
+    city: "",
+    postalCode: ""
   });
 
-  // --- NEW STATES ---
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [loading, setLoading] = useState(false); // NEW: For loading indicator
-  const [passwordVisible, setPasswordVisible] = useState(false); // NEW: For password toggle
-  const [agreedToTerms, setAgreedToTerms] = useState(false); // NEW: For terms checkbox
+  const [loading, setLoading] = useState(false);
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    // Handle checkbox separately
     if (type === "checkbox") {
       setAgreedToTerms(checked);
     } else {
-      setFormData((prevState) => ({
-        ...prevState,
-        [name]: value,
-      }));
+      setFormData((prev) => ({ ...prev, [name]: value }));
     }
   };
 
   const handleSubmit = async (e) => {
-    // CHANGED: Made async for API call
     e.preventDefault();
     setError("");
     setSuccess("");
 
     // --- Validation ---
-    if (!formData.fullName || !formData.email || !formData.password) {
-      return setError("Please fill out all fields.");
+    const { fullName, email, phone, password, confirmPassword, address, city, postalCode } = formData;
+
+    if (!fullName || !email || !password || !phone || !address || !city || !postalCode) {
+      return setError("Please fill out all required fields.");
     }
-    if (formData.password !== formData.confirmPassword) {
+    if (password !== confirmPassword) {
       return setError("Passwords do not match.");
     }
-    if (formData.password.length < 6) {
+    if (password.length < 6) {
       return setError("Password must be at least 6 characters long.");
     }
-    // NEW: Check if terms are agreed to
     if (!agreedToTerms) {
-      return setError("You must agree to the Terms of Service to continue.");
+      return setError("You must agree to the Terms of Service.");
     }
 
-    setLoading(true); // NEW: Start loading
+    setLoading(true);
 
-    // --- API Call Logic (Placeholder replaced with real logic) ---
     try {
-      // This is the fetch call to your backend server
-      const response = await fetch("http://localhost:5001/api/users/register", {
+      // FIX: Use the API constant and dynamic data
+      const response = await fetch(`${API}/users/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          fullName: formData.fullName,
-          email: formData.email,
-          phone: formData.phone,
-          password: formData.password,
-          address: formData.address,
-          city: formData.city,
-          postalCode: formData.postalCode
+          fullName,
+          email,
+          phone,
+          password,
+          address,
+          city,
+          postalCode
         }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || "Failed to create account.");
+        throw new Error(data.message || "Registration failed.");
       }
 
-      setSuccess(data.message + " Redirecting to login...");
-      setTimeout(() => {
-        navigate("/login");
-      }, 2500);
+      setSuccess("Account created successfully! Redirecting...");
+      
+      // Clear form on success
+      setFormData({
+        fullName: "", email: "", phone: "", password: "",
+        confirmPassword: "", address: "", city: "", postalCode: ""
+      });
+
+      setTimeout(() => navigate("/login"), 2500);
+
     } catch (err) {
-      setError(err.message);
+      setError(err.message === "Failed to fetch" 
+        ? "Server is currently unreachable. Please try again later." 
+        : err.message
+      );
     } finally {
-      setLoading(false); // NEW: Stop loading, whether it succeeded or failed
+      setLoading(false);
     }
   };
 
@@ -97,135 +105,80 @@ const SignUpPage = () => {
 
         <div className="input-group">
           <label htmlFor="fullName">Full Name</label>
-          <input
-            id="fullName"
-            name="fullName"
-            type="text"
-            value={formData.fullName}
-            onChange={handleChange}
-            placeholder="Sanjay Shetty"
-          />
+          <input id="fullName" name="fullName" type="text" value={formData.fullName} onChange={handleChange} placeholder="Sanjay Shetty" required />
         </div>
 
         <div className="input-group">
           <label htmlFor="email">Email</label>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            value={formData.email}
-            onChange={handleChange}
-            placeholder="you@example.com"
-          />
+          <input id="email" name="email" type="email" value={formData.email} onChange={handleChange} placeholder="you@example.com" required />
         </div>
 
         <div className="input-group">
           <label htmlFor="phone">Phone Number</label>
-          <input
-            id="phone"
-            name="phone"
-            type="phone"
-            value={formData.phone}
-            onChange={handleChange}
-            placeholder="9840011111"
-          />
+          <input id="phone" name="phone" type="text" value={formData.phone} onChange={handleChange} placeholder="9840011111" required />
         </div>
 
         <div className="input-group">
           <label htmlFor="address">Address</label>
-          <input
-            id="address"
-            name="address"
-            type="address"
-            value={formData.address}
-            onChange={handleChange}
-            placeholder="1, Main Road"
-          />
+          <input id="address" name="address" type="text" value={formData.address} onChange={handleChange} placeholder="1, Main Road" required />
         </div>
-        <div className="input-group">
-          <label htmlFor="city">city</label>
-          <input
-            id="city"
-            name="city"
-            type="city"
-            value={formData.city}
-            onChange={handleChange}
-            placeholder="Delhi"
-          />
+
+        <div className="input-row" style={{ display: 'flex', gap: '10px' }}>
+          <div className="input-group">
+            <label htmlFor="city">City</label>
+            <input id="city" name="city" type="text" value={formData.city} onChange={handleChange} placeholder="Delhi" required />
+          </div>
+          <div className="input-group">
+            <label htmlFor="postalCode">Postal Code</label>
+            <input id="postalCode" name="postalCode" type="text" value={formData.postalCode} onChange={handleChange} placeholder="201003" required />
+          </div>
         </div>
-        <div className="input-group">
-          <label htmlFor="postalCode">postalCode</label>
-          <input
-            id="postalCode"
-            name="postalCode"
-            type="postalCode"
-            value={formData.postalCode}
-            onChange={handleChange}
-            placeholder="201003"
-          />
-        </div>
-        {/* --- CHANGED: Password fields now have a toggle button --- */}
-        <div className="input-group password-group">
+
+        <div className="input-group password-group" style={{ position: 'relative' }}>
           <label htmlFor="password">Password</label>
           <input
             id="password"
             name="password"
-            type={passwordVisible ? "text" : "password"} // Type changes based on state
+            type={passwordVisible ? "text" : "password"}
             value={formData.password}
             onChange={handleChange}
-            placeholder="Minimum 6 characters"
+            placeholder="Min 6 characters"
+            required
           />
-          <button
-            type="button"
-            className="password-toggle"
-            onClick={() => setPasswordVisible(!passwordVisible)}
-          >
+          <button type="button" className="password-toggle" onClick={() => setPasswordVisible(!passwordVisible)} style={{ position: 'absolute', right: '10px', top: '35px', background: 'none', border: 'none' }}>
             {passwordVisible ? "🙈" : "👁️"}
           </button>
         </div>
 
-        <div className="input-group password-group">
+        <div className="input-group">
           <label htmlFor="confirmPassword">Confirm Password</label>
           <input
             id="confirmPassword"
             name="confirmPassword"
-            type={passwordVisible ? "text" : "password"} // Also toggles here
+            type={passwordVisible ? "text" : "password"}
             value={formData.confirmPassword}
             onChange={handleChange}
-            placeholder="Re-enter your password"
+            placeholder="Re-enter password"
+            required
           />
         </div>
-        {/* --- NEW: Terms of Service Checkbox --- */}
-        <div className="input-group terms-group">
-          <label htmlFor="terms">
-            I agree to the{" "}
-            <Link to="/terms" target="_blank">
-              Terms of Service
-            </Link>
-            <input
-              id="terms"
-              name="terms"
-              type="checkbox"
-              checked={agreedToTerms}
-              onChange={handleChange}
-              style={{ margin: 0, padding: 0, width: '50px', display: 'inline' }}
-              text="Terms & Conditions"
-            />
+
+        <div className="terms-container" style={{ margin: '15px 0' }}>
+          <input type="checkbox" id="terms" checked={agreedToTerms} onChange={handleChange} style={{ width: 'auto', marginRight: '10px' }} />
+          <label htmlFor="terms" style={{ display: 'inline' }}>
+            I agree to the <Link to="/terms" target="_blank">Terms of Service</Link>
           </label>
         </div>
 
-        {error && <p className="error-message">{error}</p>}
-        {success && <p className="success-message">{success}</p>}
+        {error && <p className="error-message" style={{ color: 'red' }}>{error}</p>}
+        {success && <p className="success-message" style={{ color: 'green' }}>{success}</p>}
 
-        {/* --- CHANGED: Button now shows loading state --- */}
         <button type="submit" className="signup-button" disabled={loading}>
-          {loading ? "Creating Account..." : "Create Account"}
+          {loading ? "Processing..." : "Create Account"}
         </button>
 
         <div className="form-footer">
-          <p>
-            Already have an account? <Link to="/login">Log In</Link>
-          </p>
+          <p>Already have an account? <Link to="/login">Log In</Link></p>
         </div>
       </form>
     </div>
